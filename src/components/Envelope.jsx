@@ -1,10 +1,11 @@
 import { useState } from "react";
 
-export default function Envelope({ herName, onOpened }) {
+export default function Envelope({ herName, onOpened, onStartMusic }) {
   const [opened, setOpened] = useState(false);
 
   const handleOpen = () => {
     if (opened) return;
+    onStartMusic?.();
     setOpened(true);
     setTimeout(() => onOpened?.(), 900);
   };

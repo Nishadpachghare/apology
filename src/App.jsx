@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Envelope from "./components/Envelope";
 import Letter from "./components/Letter";
 import ReasonCards from "./components/ReasonCards";
@@ -26,6 +26,42 @@ Sorry, Bhoomi.
 
 export default function App() {
   const [letterVisible, setLetterVisible] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    audioRef.current = new Audio("/music.mp3");
+    audioRef.current.loop = true;
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, []);
+
+  const startMusic = () => {
+    if (audioRef.current) {
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch(err => {
+        console.log("Audio playback failed or blocked:", err);
+      });
+    }
+  };
+
+  const toggleMusic = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch(err => {
+        console.log("Audio playback failed:", err);
+      });
+    }
+  };
 
   useEffect(() => {
     if (letterVisible) {
@@ -80,6 +116,7 @@ export default function App() {
           <Envelope
             herName={HER_NAME}
             onOpened={() => setLetterVisible(true)}
+            onStartMusic={startMusic}
           />
         </section>
 
@@ -104,6 +141,25 @@ export default function App() {
           </section>
         )}
       </main>
+
+      {letterVisible && (
+        <button
+          onClick={toggleMusic}
+          className="fixed bottom-6 right-6 z-50 bg-white/80 backdrop-blur-md border p-3.5 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center cursor-pointer"
+          style={{ borderColor: "var(--blush-deep)", color: "var(--wine)" }}
+          aria-label={isPlaying ? "Pause music" : "Play music"}
+        >
+          {isPlaying ? (
+            <svg className="w-5.5 h-5.5 fill-current" viewBox="0 0 24 24">
+              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+            </svg>
+          ) : (
+            <svg className="w-5.5 h-5.5 fill-current opacity-60" viewBox="0 0 24 24">
+              <path d="M4.27 3L3 4.27l9 9v.28c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4v-1.18l5.73 5.73L21 20.73zM14 7h4V3h-6v5.18l2 2z"/>
+            </svg>
+          )}
+        </button>
+      )}
 
       <footer className="relative z-10 text-center pb-10 text-xs opacity-50">
         made with a lot of love, and a little bit of code
